@@ -1,25 +1,16 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-import numpy as np
-from pylab import *
+from numpy import *
 import os
-import subprocess
 import tensorflow as tf
-from itertools import cycle
-from matplotlib.pylab import histogram
-from scipy import interpolate
-from itertools import product, cycle, count, permutations, ifilter, repeat, izip, imap
-from multiprocessing import Pool
-import tempfile
 from cStringIO import StringIO
 from PIL import Image
-import pims
-import uuid
 
 Nframes = 5
 imageSize = 256
-ximg0 = array([[[i, j] for i in arange(imageSize)] for j in arange(imageSize)]) # image pixel coordinates
+# image pixel coordinates
+ximg0 = array([[[i, j] for i in arange(imageSize)] for j in arange(imageSize)])
 X0, Y0 = meshgrid(arange(imageSize) - imageSize/2.,
                 arange(imageSize) - imageSize/2.)
 
@@ -27,7 +18,6 @@ def rand(*args):
     #shape = tf.to_int32(tf.squeeze(args))
     return tf.random_uniform(args)
 def makeVid():
-
     ximg = tf.reshape(
         tf.constant(float32(ximg0)),
         [1, 1, imageSize, imageSize, 2]
@@ -53,7 +43,8 @@ def makeVid():
         fade = uamp*(1. - ufadeMax*tf.abs(tf.tanh(z/ufade)))
         def ring1():
             core = tf.exp(-(r**2/(8.*a))**2)
-            ring = uampRing*tf.sin(uw*pi*(r/ufade)**(1.5)*tf.to_float(r<rmax))**2
+            ring = uampRing*tf.sin(uw*pi*(r/ufade)**(1.5)
+                *tf.to_float(r<rmax))**2
             return ring, core
         def ring2():
             core = tf.exp(-(r**2/(8.*a))**2)
@@ -131,7 +122,6 @@ def makeVid():
     I = tf.reshape(
         tf.transpose(I, [1, 2, 0]),
         [1, imageSize, imageSize, Nframes])
-    ## compute, for each pixel, the distance to the nearest particle (expensive and slow)
     sigma = 4.
     detectors = tf.reduce_sum(
         tf.to_int32(r < sigma),

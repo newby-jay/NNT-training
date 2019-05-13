@@ -10,7 +10,6 @@ from scipy import rand
 
 MOVING_AVERAGE_DECAY = 0.999
 
-
 def nonLinearity(conv, biases):
     """Nonlinear mapping applied to convolution output."""
     return tf.nn.softplus(tf.nn.bias_add(conv, biases))
@@ -71,16 +70,12 @@ def network(currentFrame, previousFrame, batch_size=1, dprob=1., tflag=True):
         conv = tf.nn.convolution(toConv3, kernel, padding='SAME')
         toIntrp1 = nonLinearity(conv, biases)
     ################################################################
-    ## interpolate 1
-    # with tf.variable_scope('intrp1') as scope:
-        # Ikernel1 = makeKernelinterp([3, 3, 5, 5], name='Iweights1', dprob=1, trainable=tflag)
-        # finalOut = convolutionTranspose(toIntrp1, Ikernel1, [1, 2, 2, 1], img_size, channel_size = 5)
     finalOut = tf.image.resize_images(toIntrp1, imgSize)
     return finalOut, toNextFrame
-################################################################
-################################################################
-################################################################
+
 def processFrames(images, Nframes=5, batch_size=1, dprob=1., tflag=True):
+    """Process `Nframes` (default 5) image frames of a training video for a
+    single tranining step."""
     imagesShape = tf.shape(images)
     imgSize = tf.reshape(tf.slice(imagesShape, [0], [3]), [-1])
     image_shape = tf.concat([imgSize, [1]], 0)
@@ -105,20 +100,10 @@ def processFrames(images, Nframes=5, batch_size=1, dprob=1., tflag=True):
                 dprob=dprob)
             logitsList[n] += logits
             toNextFrameList[n] = toNextFrame
-        # # frame1 = tf.stack([images[..., 2], images[..., 0], images[..., 1]], 3)
-        # frame2 = tf.slice(images, [0, 0, 0, 1], image_shape)
-        # # frame2 = images
-        # logit2, toNextFrame2 = network(frame2, toNextFrame1, dprob=dprob)
-        # tf.get_variable_scope().reuse_variables()
-        # frame3 = tf.slice(images, [0, 0, 0, 2], image_shape)
-        # # frame3 = tf.stack([images[..., 1], images[..., 2], images[..., 0]], 3)
-        # logit3, toNextFrame3 = network(frame3, toNextFrame2, dprob=dprob)
     return tf.concat(logitsList, 0)
-################################################################
-################################################################
-################################################################
 
 def loss(logits, labels):
+    """Compute the loss function for a training step."""
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(
         logits=tf.reshape(logits, [-1, 2]),
         labels=tf.reshape(labels, [-1, 2]),
@@ -135,6 +120,7 @@ def _add_loss_summaries(total_loss):
         tf.summary.scalar(l.op.name +' (raw)', l)
         tf.summary.scalar(l.op.name, loss_averages.average(l))
     return loss_averages_op
+
 def train(total_loss, global_step, learningRate, decayFactor):
     lr = tf.train.exponential_decay(
         learningRate,

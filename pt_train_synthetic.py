@@ -12,14 +12,12 @@ import tensorflow as tf
 from scipy import rand
 
 import pt
-
 from pt_input_synthetic import makeVid
 
 imageSize = 256
 learningRate = 0.085
 decayFactor = 0.8
-savePath = 'gs://ntdev/Net_RNN-2p/'
-
+savePath = 'gs://newby-lab/Mahesh/'
 
 def normalize(phi):
     e1 = np.exp(phi[0, ..., 1] - phi[0, ..., 0])
@@ -28,6 +26,8 @@ def normalize(phi):
 
 def train(n):
     train_dir = os.path.join(savePath, 'set{0}'.format(int(n)))
+    formatString = '%s: step %d, lr = %.4f, loss = %.6f, '
+    formatString += 'Pminmax = %.3f/%.3f, (%.3f sec/batch)'
     if not tf.gfile.Exists(train_dir):
         tf.gfile.MkDir(train_dir)
     with tf.Graph().as_default():
@@ -64,8 +64,15 @@ def train(n):
             if step % 40 == 0 or step == 1:
                 sec_per_batch = float(duration)
                 P1 = normalize(prediction)
-                print('%s: step %d, lr = %.4f, loss = %.6f, Pminmax = %.3f/%.3f, (%.3f sec/batch)'
-                       % (datetime.now(), step, lrj, loss_value, P1.min(), P1.max(), sec_per_batch))
+                print(
+                    formatString % (
+                        datetime.now(),
+                        step,
+                        lrj,
+                        loss_value,
+                        P1.min(),
+                        P1.max(),
+                        sec_per_batch))
             if step % 1000 == 0 or (step + 1) == max_steps:
                 checkpoint_path = os.path.join(train_dir, 'model.ckpt')
                 saver.save(sess, checkpoint_path, global_step=step)

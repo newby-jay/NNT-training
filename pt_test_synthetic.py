@@ -14,7 +14,7 @@ import pt
 from pt_input_synthetic import makeVid
 
 imageSize = 256
-savePath = 'gs://ntdev/Net_RNN-2p/'
+savePath = 'gs://newby-lab/Mahesh/'
 
 def clipVid(I, c=0.99):
     I -= I.min()
